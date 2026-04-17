@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Para a Sasa 💕</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Nunito',sans-serif;
+      background:#0a0a12;
+      min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+    }
+    #starCanvas { position:fixed; inset:0; pointer-events:none; z-index:0; }
+
+    /* ── ENVELOPE ── */
+    #envelopeScene {
+      position:relative; z-index:1;
+      display:flex; flex-direction:column; align-items:center; gap:28px;
+      cursor:pointer; user-select:none;
+    }
+    .hint {
+      color:rgba(220,170,255,0.75); font-size:0.95rem; font-weight:600;
+      letter-spacing:0.04em; animation:blink 2.2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+    .envelope-wrap {
+      position:relative; width:300px; height:210px;
+      filter:drop-shadow(0 12px 40px rgba(200,80,255,0.4));
+      transition:transform 0.2s;
+    }
+    #envelopeScene:hover .envelope-wrap { transform:scale(1.04) translateY(-5px); }
+
+    .letter-preview {
+      position:absolute; bottom:12px; left:50%;
+      transform:translateX(-50%) translateY(0);
+      width:80%; height:68px;
+      background:linear-gradient(150deg,#1e0a36,#2d0f50);
+      border-radius:10px 10px 0 0;
+      border:1.5px solid rgba(200,120,255,0.3);
+      z-index:2; opacity:0;
+      transition:transform 0.75s cubic-bezier(.4,0,.2,1) 0.35s,
+                 opacity 0.4s ease 0.35s;
+      display:flex; align-items:center; justify-content:center; font-size:1.4rem;
+    }
+    .letter-preview.rise { transform:translateX(-50%) translateY(-95px); opacity:1; }
+
+    .env-flap {
+      position:absolute; top:0; left:0; width:100%;
+      transform-origin:top center;
+      transition:transform 0.75s cubic-bezier(.4,0,.2,1);
+      z-index:3;
+    }
+    .env-flap.open { transform:rotateX(180deg); }
+
+    .seal {
+      position:absolute; top:46%; left:50%;
+      transform:translate(-50%,-50%);
+      font-size:2.2rem; z-index:4;
+      transition:opacity 0.3s; pointer-events:none;
+    }
+    .seal.hide { opacity:0; }
+
+    /* ── CARTA ABERTA ── */
+    #letterScene {
+      display:none; position:relative; z-index:1;
+      opacity:0; transform:translateY(30px) scale(0.95);
+      transition:opacity 0.6s ease, transform 0.6s ease;
+    }
+    #letterScene.show { display:flex; flex-direction:column; align-items:center; }
+    #letterScene.visible { opacity:1; transform:translateY(0) scale(1); }
+
+    .card {
+      background:rgba(18,8,32,0.9); backdrop-filter:blur(14px);
+      border-radius:28px; padding:44px 38px; max-width:500px; width:90vw;
+      box-shadow:0 20px 60px rgba(180,80,220,0.3),0 4px 16px rgba(255,100,160,0.1);
+      text-align:center; border:1.5px solid rgba(200,120,255,0.25);
+    }
+    .result-emoji {
+      font-size:3.2rem; display:block; margin-bottom:10px;
+      animation:pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+    .result-title { font-size:1.7rem; font-weight:800; color:#f0a0d0; margin-bottom:20px; }
+    .result-msg {
+      background:rgba(30,10,50,0.7); border-radius:16px; padding:20px 22px;
+      color:#f0d0ff; font-size:1rem; line-height:1.8;
+      border:1.5px solid #5a2080; white-space:pre-wrap; text-align:left;
+    }
+
+    /* confetti */
+    .confetti-heart {
+      position:fixed; font-size:1.4rem; pointer-events:none;
+      animation:cFall 2s ease-in forwards; z-index:999;
+    }
+    @keyframes cFall {
+      0%  { opacity:1; transform:translateY(0) rotate(0deg) scale(1); }
+      100%{ opacity:0; transform:translateY(200px) rotate(45deg) scale(0.4); }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="starCanvas"></canvas>
+
+<!-- ENVELOPE -->
+<div id="envelopeScene" onclick="openEnvelope()">
+  <p class="hint">✨ clique para abrir ✨</p>
+  <div class="envelope-wrap">
+    <div class="letter-preview" id="letterPreview">💕</div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 300 210" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="32" width="300" height="178" rx="13" fill="#180828" stroke="rgba(200,120,255,0.3)" stroke-width="1.5"/>
+      <polygon points="0,32 150,138 300,32"   fill="#220a3a"/>
+      <polygon points="0,210 150,126 0,32"    fill="#1c0832"/>
+      <polygon points="300,210 150,126 300,32" fill="#1c0832"/>
+      <polygon points="0,210 300,210 150,126"  fill="#260b42"/>
+    </svg>
+    <svg class="env-flap" id="envFlap" viewBox="0 0 300 148" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;height:148px">
+      <polygon points="0,0 300,0 150,138" fill="#2c0c4e" stroke="rgba(200,120,255,0.3)" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+    <div class="seal" id="seal">💌</div>
+  </div>
+</div>
+
+<!-- CARTA ABERTA -->
+<div id="letterScene">
+  <div class="card">
+    <span class="result-emoji">💕</span>
+    <div class="result-title">Para a Sasa 🌸</div>
+    <div class="result-msg" id="resultMsg"></div>
+  </div>
+</div>
+
+<script>
+  // ESTRELAS
+  const canvas = document.getElementById('starCanvas');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  function resize(){ canvas.width=innerWidth; canvas.height=innerHeight; }
+  resize();
+  window.addEventListener('resize',()=>{ resize(); initStars(); });
+  function initStars(){
+    stars=[];
+    const n=Math.floor(canvas.width*canvas.height/3200);
+    for(let i=0;i<n;i++) stars.push({
+      x:Math.random()*canvas.width, y:Math.random()*canvas.height,
+      r:Math.random()*1.5+0.2, a:Math.random(),
+      spd:Math.random()*0.007+0.002, dir:Math.random()>.5?1:-1
+    });
+  }
+  initStars();
+  (function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    stars.forEach(s=>{
+      s.a+=s.spd*s.dir;
+      if(s.a>=1||s.a<=0.05) s.dir*=-1;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,220,255,${s.a})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+
+  // MENSAGEM FIXA
+  const MSG = "sasa, eu te amo demais da conta, a cada dia que passa me sinto mais sortudo por ter me tornado seu melhor amigo. Ficamos próximos a mais ou menos 1 mês, e posso afirmar com 100% de certeza que foi o melhor mês do meu ano! Vc é a menina mais linda que eu conheço, me perco nos seus olhos quando vejo suas fotos 💕\n- Com muito e amor e carinho, bobão!";
+
+  // ABRIR ENVELOPE
+  let opened = false;
+  function openEnvelope(){
+    if(opened) return;
+    opened = true;
+    document.getElementById('envFlap').classList.add('open');
+    document.getElementById('seal').classList.add('hide');
+    setTimeout(()=> document.getElementById('letterPreview').classList.add('rise'), 380);
+    setTimeout(()=>{
+      document.getElementById('envelopeScene').style.display='none';
+      document.getElementById('resultMsg').textContent = MSG;
+      const ls = document.getElementById('letterScene');
+      ls.classList.add('show');
+      setTimeout(()=> ls.classList.add('visible'), 30);
+      confetti();
+    }, 1450);
+  }
+
+  // CONFETTI
+  const emojis=['✨','💕','💫','🌟','🩷','💖','⭐'];
+  function confetti(){
+    for(let i=0;i<28;i++){
+      setTimeout(()=>{
+        const c=document.createElement('span');
+        c.className='confetti-heart';
+        c.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+        c.style.left=(5+Math.random()*90)+'vw';
+        c.style.top=(5+Math.random()*50)+'vh';
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(),2000);
+      }, i*65);
+    }
+  }
+</script>
+</body>
+</html>
